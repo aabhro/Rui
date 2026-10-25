@@ -15,17 +15,17 @@ rbxui is built with vanilla HTML, CSS and JavaScript. It has no bundler, framewo
 - Editable starter templates for common UI patterns.
 - Undo and redo, browser-local project persistence, and keyboard shortcuts.
 - Luau export as either a **LocalScript** or **Studio Command Bar** script.
-- Text scaling preview and \`UITextSizeConstraint\` support.
+- Text scaling preview and `UITextSizeConstraint` support.
 
 ## Get started
 
 ### Open the editor
 
-Open [\`index.html\`](./index.html) in a modern browser, or serve the repository directory locally. A local server is usually the most reliable option for development:
+Open [`index.html`](./index.html) in a modern browser, or serve the repository directory locally. A local server is usually the most reliable option for development:
 
-\`\`\`sh
+```sh
 python -m http.server 8000
-\`\`\`
+```
 
 Then open [http://localhost:8000](http://localhost:8000).
 
@@ -35,9 +35,9 @@ The editor loads Geist from Google Fonts and Lucide icons from a CDN, so those v
 
 Node.js is only needed for the repository's static validation script.
 
-\`\`\`sh
+```sh
 npm run check
-\`\`\`
+```
 
 This checks the JavaScript syntax, stylesheet delimiters, asset references and core document structure.
 
@@ -55,20 +55,20 @@ The browser preview approximates Roblox UI behavior using web layout and styles.
 
 | Shortcut | Action |
 | --- | --- |
-| \`Ctrl/Cmd + Z\` | Undo |
-| \`Ctrl/Cmd + Shift + Z\` or \`Ctrl/Cmd + Y\` | Redo |
-| \`Ctrl/Cmd + S\` | Save the current project to browser storage |
-| \`Ctrl/Cmd + D\` | Duplicate the selected layer |
+| `Ctrl/Cmd + Z` | Undo |
+| `Ctrl/Cmd + Shift + Z` or `Ctrl/Cmd + Y` | Redo |
+| `Ctrl/Cmd + S` | Save the current project to browser storage |
+| `Ctrl/Cmd + D` | Duplicate the selected layer |
 | Arrow keys | Move the selected visual object |
-| \`Shift + Arrow\` | Move by a larger step |
-| \`Delete\` / \`Backspace\` | Delete the selected layer |
-| \`Escape\` | Dismiss a menu or exit preview |
+| `Shift + Arrow` | Move by a larger step |
+| `Delete` / `Backspace` | Delete the selected layer |
+| `Escape` | Dismiss a menu or exit preview |
 
 Arrow-key movement follows the current snap setting. Shortcuts that change the selected object are suppressed while editing a text field.
 
 ## Project structure
 
-\`\`\`text
+```text
 rbxui/
 ├── index.html                  Main editor entry point
 ├── rbxui.html                  Alternate entry point for compatibility
@@ -87,13 +87,13 @@ rbxui/
 ├── CONTRIBUTING.md
 ├── package.json
 └── README.md
-\`\`\`
+```
 
-Both HTML entry points use the same stylesheet and JavaScript source. Make application changes in \`assets/css/editor.css\` and \`assets/js/editor.js\`, not in one entry point.
+Both HTML entry points use the same stylesheet and JavaScript source. Make application changes in `assets/css/editor.css` and `assets/js/editor.js`, not in one entry point.
 
 ## Project storage and privacy
 
-Project data is saved in the browser's \`localStorage\` under \`rbxui.project.v1\`. It is local to the browser profile and origin. It does not sync between browsers or devices. Export a Luau script and keep separate project backups when you need a portable copy of your work.
+Project data is saved in the browser's `localStorage` under `rbxui.project.v1`. It is local to the browser profile and origin. It does not sync between browsers or devices. Export a Luau script and keep separate project backups when you need a portable copy of your work.
 
 ## Current scope
 
@@ -101,4 +101,4 @@ rbxui is an actively developed editor, not a replacement for Roblox Studio's run
 
 ## License
 
-This repository currently has no \`LICENSE\` file. Add an explicit license before granting others permission to reuse or redistribute the project.
+This repository currently has no `LICENSE` file. Add an explicit license before granting others permission to reuse or redistribute the project.
