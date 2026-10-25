@@ -821,7 +821,7 @@ $('#inspector').addEventListener('input',function(e){
  if(input.type==='number'||input.type==='checkbox'||input.tagName==='SELECT')return;
  updateProp(input.dataset.prop,input.value,input.dataset.sub);
 });
-$('.right-panel').addEventListener('click',e=>{const tab=e.target.closest('[data-tab]');if(tab){state.activeTab=tab.dataset.tab;$('.inspector-tab').forEach(t=>t.classList.toggle('active',t===tab));renderInspector();return;}const mod=e.target.closest('[data-add-modifier]');if(mod)addModifier(mod.dataset.addModifier);});
+$('.right-panel').addEventListener('click',e=>{const tab=e.target.closest('[data-tab]');if(tab){state.activeTab=tab.dataset.tab;$$('.inspector-tab').forEach(t=>t.classList.toggle('active',t===tab));renderInspector();return;}const mod=e.target.closest('[data-add-modifier]');if(mod)addModifier(mod.dataset.addModifier);});
 
 $('#resetProps').addEventListener('click',()=>{const n=current();if(!n||n.className==='ScreenGui'){toast('Select a component first');return;}checkpoint();const fresh=freshProps(n.className);Object.keys(n.props).forEach(k=>delete n.props[k]);Object.assign(n.props,fresh);renderAll();save();toast('Properties reset');});
 $('#stage').addEventListener('pointerdown',nodePointerDown);$('#stage').addEventListener('pointerdown',resizePointerDown);document.addEventListener('pointermove',pointerMove);document.addEventListener('pointerup',pointerUp);$('#stage').addEventListener('click',e=>{if(e.target===$('#stage')&&!state.preview)selectNode('root');});
