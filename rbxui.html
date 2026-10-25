@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>rbxui · UI editor</title>
-<meta name="rbxui-revision" content="features-2026-10-25-05">
+<meta name="rbxui-revision" content="features-2026-10-25-06">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600;650;700&display=swap" rel="stylesheet">
@@ -542,7 +542,7 @@ function renderGuiNode(n){const selected=state.selectedId===n.id;const className
   if(n.className==='ScrollingFrame'){style+=';overflow:auto;';}
   return `<div class="${classNames.join(' ')}" data-node-id="${n.id}" data-class="${n.className}" data-hover="${n.meta?.hover?.enabled?'true':'false'}" style="${style}">${contentHTML(n)}${nodeChildrenHTML(n)}</div>`;
 }
-function measureScaledText(ctx,text,maxWidth,wrap){const paragraphs=String(text??'').replace(/\r\n?/g,'\n').split('\n');let lines=0,maxLineWidth=0;const addLine=line=>{lines++;maxLineWidth=Math.max(maxLineWidth,ctx.measureText(line).width);};for(const paragraph of paragraphs){if(!wrap){addLine(paragraph);continue;}if(!paragraph){addLine('');continue;}const words=paragraph.match(/\S+|\s+/g)||[''];let line='';for(const token of words){if(/^\s+$/.test(token)){if(line&&ctx.measureText(line+token).width<=maxWidth)line+=token;continue;}const candidate=line+token;if(ctx.measureText(candidate).width<=maxWidth){line=candidate;continue;}if(line){addLine(line.trimEnd());line='';}let piece='';for(const ch of token){if(piece&&ctx.measureText(piece+ch).width>maxWidth){addLine(piece);piece=ch;}else piece+=ch;}line=piece;}addLine(line.trimEnd());}return {lines:Math.max(1,lines),width:maxLineWidth};}
+
 function fitScaledTextNode(el){
  if(!el||!el.isConnected)return;
  const n=getNode(el.dataset.nodeId);
@@ -573,7 +573,7 @@ function fitScaledTextNode(el){
   const rect=span.getBoundingClientRect();
   const contentWidth=Math.max(rect.width,span.scrollWidth);
   const contentHeight=Math.max(rect.height,span.scrollHeight);
-  return contentWidth<=width+.5&&contentHeight<=height+.5;
+  return contentWidth<=width+.5&&contentHeight<=height+.1;
  };
  let low=minSize,high=maxSize;
  if(fits(high)){low=high;}
