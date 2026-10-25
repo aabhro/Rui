@@ -599,14 +599,100 @@ function addTStroke(parentId,color='#303030'){return addTemplateNode(parentId,'U
 function addTShadow(parentId){return addTemplateNode(parentId,'UIShadow','Shadow',{BlurRadius:{scale:0,offset:18},Color:'#000000',Transparency:.48,Offset:{xs:0,xo:0,ys:0,yo:8},Spread:{xs:0,xo:0,ys:0,yo:0},Mode:'Shape',Inset:false,ShowBehindParent:true,ZIndex:-1,Enabled:true});}
 function addTLabel(parentId,name,text,x,y,w,h,props={}){return addTemplateNode(parentId,'TextLabel',name,Object.assign({Text:text,Position:tPos(x,y),Size:tSize(w,h),BackgroundTransparency:1,TextColor3:'#f5f5f5',TextSize:14,Font:'Gotham',TextXAlignment:'Left',TextYAlignment:'Center',TextWrapped:false,ZIndex:3},props));}
 function addTButton(parentId,name,text,x,y,w,h,props={}){const b=addTemplateNode(parentId,'TextButton',name,Object.assign({Text:text,Position:tPos(x,y),Size:tSize(w,h),BackgroundColor3:'#f5f5f5',TextColor3:'#0a0a0a',TextSize:13,Font:'GothamMedium',TextXAlignment:'Center',TextYAlignment:'Center',BorderSizePixel:0,AutoButtonColor:false,ZIndex:4},props),{hover:{enabled:true,scale:1.045,duration:.14}});addTCorner(b.id,7);addTStroke(b.id,'#f5f5f5');return b;}
-function insertTemplate(kind){const selected=current(),parentId=['Frame','ScrollingFrame','CanvasGroup'].includes(selected?.className)?selected.id:'root';let root=null;const dark='#151515',line='#303030',muted='#a3a3a3';
-if(kind==='button'){root=addTButton(parentId,'PrimaryButton','Continue',.5,.5,220,48,{AnchorPoint:{x:.5,y:.5},Position:tPos(.5,.5)});}
-else if(kind==='loading'){root=addTemplateNode(parentId,'Frame','LoadingScreen',{Position:tPos(.5,.5),Size:tSize(480,240),AnchorPoint:{x:.5,y:.5},BackgroundColor3:'#0a0a0a',BorderSizePixel:0,ZIndex:1});addTCorner(root.id,12);addTStroke(root.id,line);addTShadow(root.id);addTLabel(root.id,'LoadingTitle','Loading your game',28,24,424,34,{TextSize:22,Font:'GothamBold'});addTLabel(root.id,'LoadingSubtitle','Preparing assets…',28,64,424,22,{TextSize:12,TextColor3:muted});const track=addTemplateNode(root.id,'Frame','ProgressTrack',{Position:tPos(28/480,130/240),Size:{xs:1,xo:-56,ys:0,yo:10},BackgroundColor3:'#262626',BorderSizePixel:0,ZIndex:2});addTCorner(track.id,6);const fill=addTemplateNode(track.id,'Frame','ProgressFill',{Position:tPos(0,0),Size:{xs:.68,xo:0,ys:1,yo:0},BackgroundColor3:'#f5f5f5',BorderSizePixel:0,ZIndex:3},{loadingBar:{enabled:true,duration:2.4}});addTCorner(fill.id,5);addTLabel(root.id,'ProgressPercent','68%',28,154,424,24,{TextSize:11,TextColor3:muted,TextXAlignment:'Right'});}
-else if(kind==='hud'){root=addTemplateNode(parentId,'Frame','GameHUD',{Position:tPos(.5,.06),Size:{xs:.86,xo:0,ys:0,yo:62},AnchorPoint:{x:.5,y:0},BackgroundColor3:dark,BorderSizePixel:0,ZIndex:1});addTCorner(root.id,10);addTStroke(root.id,line);addTLabel(root.id,'LevelLabel','LEVEL 24',18,0,122,62,{TextColor3:muted,TextSize:11});addTLabel(root.id,'CurrencyLabel','◈  2,450',145,0,160,62,{TextSize:15,Font:'GothamBold'});addTButton(root.id,'ShopButton','SHOP',.86,.5,100,38,{Position:tPos(.86,.5),AnchorPoint:{x:.5,y:.5},BackgroundColor3:'#d4d4d4'});}
-else if(kind==='settings'){root=addTemplateNode(parentId,'Frame','SettingsPanel',{Position:tPos(.5,.5),Size:tSize(460,360),AnchorPoint:{x:.5,y:.5},BackgroundColor3:dark,BorderSizePixel:0,ZIndex:1});addTCorner(root.id,12);addTStroke(root.id,line);addTShadow(root.id);addTLabel(root.id,'SettingsTitle','Settings',24,18,340,34,{TextSize:21,Font:'GothamBold'});addTButton(root.id,'CloseButton','×',386,18,50,34,{Position:tPos(386/460,18/360),BackgroundColor3:'#262626',TextColor3:'#f5f5f5'});['Graphics quality','Music volume','Mouse sensitivity'].forEach((t,i)=>{const yy=78+i*66;addTLabel(root.id,'SettingLabel'+(i+1),t,24,yy,180,24,{TextSize:12});const track=addTemplateNode(root.id,'Frame','SettingTrack'+(i+1),{Position:tPos(24/460,(yy+32)/360),Size:{xs:1,xo:-48,ys:0,yo:6},BackgroundColor3:'#262626',BorderSizePixel:0,ZIndex:2});addTCorner(track.id,4);const fill=addTemplateNode(root.id,'Frame','SettingValue'+(i+1),{Position:tPos(0,0),Size:{xs:[.72,.55,.84][i],xo:0,ys:1,yo:0},BackgroundColor3:'#d4d4d4',BorderSizePixel:0,ZIndex:3});addTCorner(fill.id,4);});}
-else if(kind==='shop'){root=addTemplateNode(parentId,'Frame','ShopCard',{Position:tPos(.5,.5),Size:tSize(280,340),AnchorPoint:{x:.5,y:.5},BackgroundColor3:dark,BorderSizePixel:0,ZIndex:1});addTCorner(root.id,12);addTStroke(root.id,line);addTShadow(root.id);const art=addTemplateNode(root.id,'Frame','ItemArtwork',{Position:tPos(16/280,16/340),Size:{xs:1,xo:-32,ys:0,yo:150},BackgroundColor3:'#262626',BorderSizePixel:0,ZIndex:2});addTCorner(art.id,8);addTLabel(art.id,'ArtworkHint','ITEM PREVIEW',0,0,228,150,{TextXAlignment:'Center',TextColor3:muted,TextSize:10});addTLabel(root.id,'ItemName','Starter pack',16,178,248,26,{TextSize:16,Font:'GothamBold'});addTLabel(root.id,'ItemDescription','A useful set of essentials',16,207,248,22,{TextSize:11,TextColor3:muted});addTLabel(root.id,'ItemPrice','◈  450',16,242,100,24,{TextSize:13,Font:'GothamBold'});addTButton(root.id,'BuyButton','Buy item',16,282,248,42,{Position:tPos(16/280,282/340)});}
-else if(kind==='inventory'){root=addTemplateNode(parentId,'Frame','InventoryPanel',{Position:tPos(.5,.5),Size:tSize(440,340),AnchorPoint:{x:.5,y:.5},BackgroundColor3:dark,BorderSizePixel:0,ZIndex:1});addTCorner(root.id,12);addTStroke(root.id,line);addTShadow(root.id);addTLabel(root.id,'InventoryTitle','Inventory',20,14,360,30,{TextSize:20,Font:'GothamBold'});addTemplateNode(root.id,'UIGridLayout','InventoryLayout',{CellSize:tSize(92,76),CellPadding:tSize(10,10),FillDirectionMaxCells:4,FillDirection:'Horizontal',HorizontalAlignment:'Left',VerticalAlignment:'Top',SortOrder:'LayoutOrder'});for(let i=0;i<6;i++){const slot=addTemplateNode(root.id,'Frame','ItemSlot'+(i+1),{Size:tSize(92,76),BackgroundColor3:'#202020',BorderSizePixel:0,LayoutOrder:i+1,ZIndex:2});addTCorner(slot.id,7);addTStroke(slot.id,'#333333');addTLabel(slot.id,'SlotLabel'+(i+1),'ITEM '+(i+1),5,0,82,76,{TextColor3:muted,TextSize:9,TextXAlignment:'Center'});}}
-if(root){checkpoint();state.selectedId=root.id;state.activeTab='properties';renderAll();save();$('#templatesOverlay').classList.remove('open');toast('Inserted '+root.name+' template');}}
+function insertTemplate(kind){
+ const selected=current(),parentId=['Frame','ScrollingFrame','CanvasGroup'].includes(selected?.className)?selected.id:'root';
+ let root=null;
+ const dark='#151515',line='#303030',muted='#a3a3a3',soft='#202020',bright='#f5f5f5';
+ const pos=(x,y)=>({xs:x,xo:0,ys:y,yo:0});
+ const size=(w,h)=>({xs:w,xo:0,ys:h,yo:0});
+ function panel(name,maxW,h,minW,position=pos(.5,.5)){
+  const p=addTemplateNode(parentId,'Frame',name,{Position:position,Size:{xs:.92,xo:0,ys:0,yo:h},AnchorPoint:{x:.5,y:position.ys===.09?.5:.5},BackgroundColor3:dark,BorderSizePixel:0,ZIndex:1});
+  addTemplateNode(p.id,'UISizeConstraint',name+'ResponsiveSize',{MinSize:{x:minW,y:h},MaxSize:{x:maxW,y:h}});
+  addTCorner(p.id,12);addTStroke(p.id,line);addTShadow(p.id);return p;
+ }
+ function frameP(pid,name,x,y,w,h,bg=soft,z=2,props={}){
+  return addTemplateNode(pid,'Frame',name,Object.assign({Position:pos(x,y),Size:size(w,h),BackgroundColor3:bg,BackgroundTransparency:0,BorderSizePixel:0,ZIndex:z},props));
+ }
+ function labelP(pid,name,text,x,y,w,h,props={}){
+  return addTemplateNode(pid,'TextLabel',name,Object.assign({Text:text,Position:pos(x,y),Size:size(w,h),BackgroundTransparency:1,TextColor3:bright,TextSize:13,Font:'Gotham',TextXAlignment:'Left',TextYAlignment:'Center',TextWrapped:false,ZIndex:3},props));
+ }
+ function buttonP(pid,name,text,x,y,w,h,props={}){
+  return addTButton(pid,name,text,x,y,w,h,Object.assign({Position:pos(x,y),Size:size(w,h),BackgroundColor3:bright,TextColor3:'#0a0a0a',TextSize:12,Font:'GothamBold',BorderSizePixel:0,ZIndex:4},props));
+ }
+ function closeP(pid,x=.88,y=.07,w=.07,h=.09){return buttonP(pid,'CloseButton','×',x,y,w,h,{BackgroundColor3:'#262626',TextColor3:bright,TextSize:17,Font:'Gotham'});}
+ if(kind==='button'){
+  root=panel('ActionCard',440,218,290);
+  labelP(root.id,'CardEyebrow','ACCOUNT  /  ACCESS',.06,.09,.62,.08,{TextSize:9,TextColor3:muted,Font:'GothamBold'});
+  labelP(root.id,'CardStatus','READY',.78,.09,.16,.08,{TextSize:9,TextColor3:'#d4d4d4',TextXAlignment:'Right'});
+  labelP(root.id,'CardTitle','Continue to your account',.06,.25,.88,.17,{TextSize:20,Font:'GothamBold'});
+  labelP(root.id,'CardDescription','Your progress is saved automatically.',.06,.44,.88,.10,{TextSize:11,TextColor3:muted});
+  frameP(root.id,'CardDivider',.06,.61,.88,.004,'#2a2a2a',2);
+  buttonP(root.id,'PrimaryAction','Continue',.06,.70,.88,.20,{TextSize:13});
+  labelP(root.id,'CardFootnote','Secure connection  ·  v1.0',.06,.92,.88,.05,{TextSize:8,TextColor3:'#737373'});
+ }else if(kind==='loading'){
+  root=panel('LoadingScreen',520,258,286);
+  labelP(root.id,'LoadingEyebrow','INITIALIZING SESSION',.06,.08,.68,.08,{TextSize:9,Font:'GothamBold',TextColor3:muted});
+  labelP(root.id,'LoadingStatus','CONNECTING',.70,.08,.24,.08,{TextSize:9,Font:'GothamBold',TextColor3:'#d4d4d4',TextXAlignment:'Right'});
+  labelP(root.id,'LoadingTitle','Preparing your world',.06,.23,.88,.14,{TextSize:21,Font:'GothamBold'});
+  labelP(root.id,'LoadingSubtitle','Loading player data and game assets',.06,.39,.88,.08,{TextSize:11,TextColor3:muted});
+  const track=frameP(root.id,'ProgressTrack',.06,.61,.88,.035,'#292929',2);addTCorner(track.id,5);
+  const fill=frameP(track.id,'ProgressFill',0,0,.42,1,bright,3,{Position:pos(0,0),Size:size(.42,1)});
+  addTCorner(fill.id,5);
+  fill.meta={loadingBar:{enabled:true,duration:2.6}};
+  labelP(root.id,'ProgressDetail','42%  ·  3 of 7 assets',.06,.70,.88,.08,{TextSize:10,TextColor3:'#d4d4d4'});
+  labelP(root.id,'LoadingFooter','PLEASE KEEP THIS WINDOW OPEN',.06,.88,.88,.06,{TextSize:8,TextColor3:'#737373',Font:'GothamBold'});
+ }else if(kind==='hud'){
+  root=addTemplateNode(parentId,'Frame','GameHUD',{Position:pos(.5,.10),Size:{xs:.94,xo:0,ys:0,yo:86},AnchorPoint:{x:.5,y:.5},BackgroundColor3:'#101010',BorderSizePixel:0,ZIndex:1});
+  addTemplateNode(root.id,'UISizeConstraint','HUDResponsiveSize',{MinSize:{x:280,y:86},MaxSize:{x:900,y:86}});
+  addTCorner(root.id,11);addTStroke(root.id,line);addTShadow(root.id);
+  const avatar=frameP(root.id,'PlayerInfo',.025,.14,.285,.72,'#1c1c1c',2);addTCorner(avatar.id,7);
+  labelP(avatar.id,'PlayerLevel','LEVEL 24',.09,.12,.82,.24,{TextSize:8,TextColor3:muted,Font:'GothamBold'});
+  labelP(avatar.id,'PlayerName','PlayerOne',.09,.40,.82,.36,{TextSize:13,Font:'GothamBold'});
+  labelP(root.id,'CurrencyLabel','◈  2,450',.335,.18,.255,.30,{TextSize:13,Font:'GothamBold',TextXAlignment:'Center'});
+  labelP(root.id,'CurrencyCaption','CREDITS',.335,.49,.255,.18,{TextSize:8,TextColor3:muted,TextXAlignment:'Center'});
+  const health=frameP(root.id,'HealthTrack',.335,.72,.255,.08,'#292929',2);addTCorner(health.id,5);
+  const healthFill=frameP(health.id,'HealthFill',0,0,.76,1,'#d4d4d4',3,{Position:pos(0,0),Size:size(.76,1)});addTCorner(healthFill.id,5);
+  labelP(root.id,'HealthValue','76%',.61,.23,.17,.22,{TextSize:9,TextColor3:muted,TextXAlignment:'Center'});
+  buttonP(root.id,'ShopButton','SHOP',.80,.22,.17,.56,{BackgroundColor3:bright,TextSize:10});
+ }else if(kind==='settings'){
+  root=panel('SettingsPanel',480,430,280);
+  labelP(root.id,'SettingsEyebrow','PREFERENCES',.06,.06,.60,.06,{TextSize:9,TextColor3:muted,Font:'GothamBold'});
+  labelP(root.id,'SettingsTitle','Settings',.06,.13,.70,.10,{TextSize:21,Font:'GothamBold'});
+  closeP(root.id,.86,.07,.08,.09);
+  labelP(root.id,'SettingsSubtitle','Make the game feel right for you.',.06,.24,.86,.06,{TextSize:10,TextColor3:muted});
+  frameP(root.id,'SettingsDivider',.06,.32,.88,.003,'#2a2a2a',2);
+  const rows=[['Music','Ambient music and soundtrack','ON'],['Sound effects','Interface and world audio','ON'],['Camera shake','Impact and movement feedback','OFF'],['Damage numbers','Show floating combat values','ON']];
+  rows.forEach((r,i)=>{const y=.37+i*.115,row=frameP(root.id,'SettingRow'+(i+1),.06,y,.88,.10,'#1c1c1c',2);addTCorner(row.id,7);labelP(row.id,'SettingName'+(i+1),r[0],.06,.13,.64,.34,{TextSize:11,Font:'GothamBold'});labelP(row.id,'SettingDescription'+(i+1),r[1],.06,.52,.67,.28,{TextSize:8,TextColor3:muted});buttonP(row.id,'SettingToggle'+(i+1),r[2],.76,.21,.18,.58,{BackgroundColor3:r[2]==='ON'?'#303030':'#171717',TextColor3:r[2]==='ON'?bright:muted,TextSize:9,Font:'GothamBold'});});
+  buttonP(root.id,'ResetSettings','Reset',.06,.86,.28,.09,{BackgroundColor3:'#202020',TextColor3:'#d4d4d4',TextSize:10});
+  buttonP(root.id,'ApplySettings','Apply changes',.57,.86,.37,.09,{TextSize:10});
+ }else if(kind==='shop'){
+  root=panel('ShopCard',360,438,280);
+  labelP(root.id,'ShopEyebrow','DAILY STORE',.06,.05,.60,.06,{TextSize:9,TextColor3:muted,Font:'GothamBold'});
+  closeP(root.id,.85,.045,.09,.07);
+  const artwork=frameP(root.id,'ItemArtwork',.06,.14,.88,.37,'#222222',2);addTCorner(artwork.id,9);addTStroke(artwork.id,'#343434');
+  labelP(artwork.id,'ArtworkHint','ITEM PREVIEW',.08,.34,.84,.23,{TextSize:10,Font:'GothamBold',TextColor3:'#737373',TextXAlignment:'Center'});
+  const rarity=frameP(artwork.id,'RarityBadge',.04,.06,.27,.17,'#303030',3);addTCorner(rarity.id,4);
+  labelP(rarity.id,'RarityText','EPIC',.04,.05,.92,.88,{TextSize:8,Font:'GothamBold',TextColor3:'#d4d4d4',TextXAlignment:'Center'});
+  labelP(root.id,'ItemTitle','Starter pack',.06,.55,.88,.08,{TextSize:18,Font:'GothamBold'});
+  labelP(root.id,'ItemDescription','A carefully selected set of useful essentials.',.06,.64,.88,.09,{TextSize:10,TextColor3:muted,TextYAlignment:'Top',TextWrapped:true});
+  frameP(root.id,'ShopDivider',.06,.76,.88,.003,'#2a2a2a',2);
+  labelP(root.id,'ItemPrice','◈  450',.06,.80,.38,.10,{TextSize:15,Font:'GothamBold'});
+  buttonP(root.id,'BuyButton','Buy item',.50,.79,.44,.12,{TextSize:11});
+  labelP(root.id,'ShopFooter','LIMITED OFFER  ·  AVAILABLE NOW',.06,.93,.88,.04,{TextSize:8,TextColor3:'#737373',Font:'GothamBold'});
+ }else if(kind==='inventory'){
+  root=panel('InventoryPanel',540,438,280);
+  labelP(root.id,'InventoryEyebrow','COLLECTION',.05,.045,.6,.055,{TextSize:9,TextColor3:muted,Font:'GothamBold'});
+  labelP(root.id,'InventoryTitle','Inventory',.05,.105,.55,.09,{TextSize:21,Font:'GothamBold'});
+  labelP(root.id,'InventoryCount','06 / 24 ITEMS',.62,.12,.33,.06,{TextSize:9,TextColor3:muted,TextXAlignment:'Right',Font:'GothamBold'});
+  const search=addTemplateNode(root.id,'TextBox','InventorySearch',{Position:pos(.05,.215),Size:size(.90,.075),BackgroundColor3:'#202020',BackgroundTransparency:0,BorderSizePixel:0,Text:'',PlaceholderText:'Search inventory',PlaceholderColor3:'#737373',TextColor3:bright,TextSize:10,Font:'Gotham',TextXAlignment:'Left',ClearTextOnFocus:false,ZIndex:2});addTCorner(search.id,6);addTStroke(search.id,'#303030');
+  const grid=frameP(root.id,'InventoryGrid',.05,.32,.90,.59,'transparent',2,{BackgroundTransparency:1});
+  addTemplateNode(grid.id,'UIGridLayout','InventoryGridLayout',{CellSize:{xs:.29,xo:0,ys:.43,yo:0},CellPadding:{xs:0,xo:8,ys:0,yo:8},FillDirectionMaxCells:3,FillDirection:'Horizontal',HorizontalAlignment:'Left',VerticalAlignment:'Top',SortOrder:'LayoutOrder'});
+  const items=[['Medkit','HEALING','#292929'],['Plasma rifle','WEAPON','#303030'],['Shield cell','DEFENSE','#242424'],['XP boost','BOOST','#303030'],['Keycard','ACCESS','#292929'],['Crystals','RESOURCE','#242424']];
+  items.forEach((item,i)=>{const slot=addTemplateNode(grid.id,'Frame','InventoryItem'+(i+1),{Size:{xs:.29,xo:0,ys:.43,yo:0},BackgroundColor3:'#191919',BorderSizePixel:0,LayoutOrder:i+1,ZIndex:2});addTCorner(slot.id,7);addTStroke(slot.id,'#303030');const art=frameP(slot.id,'ItemIcon'+(i+1),.08,.08,.34,.43,item[2],3);addTCorner(art.id,5);labelP(art.id,'IconHint'+(i+1),['+','R','S','XP','K','◇'][i],.02,.02,.96,.96,{TextSize:16,Font:'GothamBold',TextXAlignment:'Center'});labelP(slot.id,'ItemName'+(i+1),item[0],.08,.56,.84,.17,{TextSize:9,Font:'GothamBold'});labelP(slot.id,'ItemCategory'+(i+1),item[1],.08,.76,.84,.10,{TextSize:7,TextColor3:muted,Font:'GothamBold'});});
+  labelP(root.id,'InventoryFooter','Select an item to view its stats and actions.',.05,.93,.90,.045,{TextSize:8,TextColor3:'#737373'});
+ }
+ if(root){checkpoint();state.selectedId=root.id;state.activeTab='properties';renderAll();save();$('#templatesOverlay').classList.remove('open');toast('Inserted '+root.name+' template');}
+}
 function toggleHoverAnimation(id){const n=getNode(id);if(!n||!['TextButton','ImageButton'].includes(n.className))return;checkpoint();n.meta=n.meta||{};n.meta.hover=n.meta.hover||{scale:1.05,duration:.14};n.meta.hover.enabled=!n.meta.hover.enabled;save();renderAll();toast(n.meta.hover.enabled?'Hover animation enabled':'Hover animation disabled');}
 
 
