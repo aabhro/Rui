@@ -1,0 +1,9 @@
+{
+  "name": "rbxui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A browser-based visual editor for Roblox UI",
+  "scripts": {
+    "check": "node scripts/validate.mjs"
+  }
+}

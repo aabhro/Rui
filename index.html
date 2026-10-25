@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="A browser-based editor for designing Roblox UI layouts and exporting them as Luau.">
+<title>rbxui · UI editor</title>
+<meta name="rbxui-revision" content="0.1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600;650;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest" defer></script>
+<link rel="stylesheet" href="./assets/css/editor.css">
+</head>
+<body>
+<div class="app" id="appRoot">
+  <header class="topbar">
+    <div class="top-left">
+      <div class="brand">rbx<span>ui</span></div>
+      <div class="separator"></div>
+      <input class="project-name" id="projectName" aria-label="Project name" value="Untitled UI" spellcheck="false">
+      <div class="separator"></div>
+      <div class="pill-group" aria-label="History controls">
+        <button class="icon-btn" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo"><i data-lucide="undo-2"></i></button>
+        <button class="icon-btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><i data-lucide="redo-2"></i></button>
+      </div>
+    </div>
+    <div class="top-center">
+      <span class="top-control-label">Canvas</span>
+      <div class="pill-group">
+        <button class="icon-btn" id="zoomOut" aria-label="Zoom out" title="Zoom out"><i data-lucide="minus"></i></button>
+        <button class="btn mono" id="zoomLabel" style="min-width:55px">80%</button>
+        <button class="icon-btn" id="zoomIn" aria-label="Zoom in" title="Zoom in"><i data-lucide="plus"></i></button>
+        <button class="icon-btn" id="fitBtn" aria-label="Fit canvas" title="Fit canvas"><i data-lucide="scan"></i></button>
+      </div>
+    </div>
+    <div class="top-right">
+      <button class="icon-btn mobile-only" id="toggleLayers" title="Layers" aria-label="Layers"><i data-lucide="layers"></i></button>
+      <button class="icon-btn mobile-only" id="toggleProperties" title="Properties" aria-label="Properties"><i data-lucide="sliders-horizontal"></i></button>
+      <button class="btn" id="templatesBtn"><i data-lucide="layout-template"></i><span>Templates</span></button>
+      <button class="btn" id="previewBtn"><i data-lucide="play"></i><span>Preview</span></button>
+      <button class="btn primary export-label" id="exportBtn"><i data-lucide="code-2"></i>Export</button>
+    </div>
+  </header>
+  <main class="workspace">
+    <aside class="panel left-panel" aria-label="Layers panel">
+      <div class="panel-head"><span class="panel-title">Layers</span><div class="panel-head-actions"><button class="icon-btn" id="collapseLayers" aria-label="Collapse all layers" title="Collapse all"><i data-lucide="list-collapse"></i></button><button class="icon-btn" id="addToggle" aria-label="Add component" title="Add component"><i data-lucide="plus"></i></button></div></div>
+      <div class="layer-toolbar"><label class="search-field"><i data-lucide="search"></i><input id="layerSearch" placeholder="Find a layer" autocomplete="off" aria-label="Find a layer"></label><button class="icon-btn" id="clearLayerSearch" title="Clear search" aria-label="Clear search"><i data-lucide="x"></i></button></div>
+      <div class="panel-scroll" style="flex:1"><div class="layer-tree" id="layerTree"></div></div>
+      <div class="statusbar"><span id="layerCount">0 layers</span><span><i data-lucide="hard-drive"></i><span>Local project</span></span></div>
+      <div class="add-menu" id="addMenu" role="dialog" aria-label="Add component">
+        <input class="menu-search" id="componentSearch" placeholder="Search components" autocomplete="off" aria-label="Search components">
+        <div id="componentOptions"></div>
+      </div>
+    </aside>
+    <section class="canvas-area" aria-label="UI canvas">
+      <div class="canvas-toolbar"><div class="canvas-toolbar-left"><span class="canvas-title">ScreenGui</span><button type="button" class="device-chip" id="canvasSizeBtn" title="Canvas size and device presets" aria-haspopup="true">960 × 600</button><span class="small muted" id="selectionPath">MainFrame</span></div><div class="canvas-toolbar-right"><div class="pill-group" aria-label="Canvas tools"><button class="icon-btn is-on" id="gridToggle" aria-pressed="true" title="Toggle 16 px grid"><i data-lucide="grid-2x2"></i></button><button class="icon-btn" id="snapToggle" aria-pressed="false" title="Snap to 8 px grid"><i data-lucide="magnet"></i></button></div><div class="pill-group" aria-label="Alignment and view"><button class="icon-btn" id="alignBtn" title="Align selected element" aria-label="Align selected element"><i data-lucide="align-center"></i></button><button class="icon-btn" id="centerSelection" title="Center selected element" aria-label="Center selected element"><i data-lucide="locate-fixed"></i></button><button class="icon-btn" id="canvasFit" title="Fit canvas" aria-label="Fit canvas"><i data-lucide="scan"></i></button></div></div></div>
+      <div class="canvas-size-menu" id="canvasSizeMenu" role="dialog" aria-label="Canvas size">
+        <div class="menu-title">Canvas size</div>
+        <div class="canvas-preset-grid">
+          <button type="button" data-canvas-preset="1920x1080">Desktop <span>1920 × 1080</span></button>
+          <button type="button" data-canvas-preset="1366x768">Laptop <span>1366 × 768</span></button>
+          <button type="button" data-canvas-preset="1280x720">HD <span>1280 × 720</span></button>
+          <button type="button" data-canvas-preset="1024x768">Tablet <span>1024 × 768</span></button>
+          <button type="button" data-canvas-preset="390x844">Phone <span>390 × 844</span></button>
+          <button type="button" data-canvas-preset="768x1024">Portrait <span>768 × 1024</span></button>
+          <button type="button" data-canvas-preset="960x600">Classic <span>960 × 600</span></button>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="field-row"><div class="mini-field"><label for="canvasWidthInput">Width</label><input class="control-input mono" id="canvasWidthInput" type="number" min="1" max="16384" value="960"></div><div class="mini-field"><label for="canvasHeightInput">Height</label><input class="control-input mono" id="canvasHeightInput" type="number" min="1" max="16384" value="600"></div></div>
+        <button class="btn primary" id="applyCanvasSize" style="width:100%;margin-top:10px">Apply custom size</button>
+      </div>
+      <div class="alignment-menu" id="alignMenu" role="dialog" aria-label="Alignment">
+        <div class="menu-title">Align in parent</div>
+        <div class="alignment-grid">
+          <button type="button" data-align="0,0" aria-label="Top left">↖</button><button type="button" data-align="0.5,0" aria-label="Top center">↑</button><button type="button" data-align="1,0" aria-label="Top right">↗</button>
+          <button type="button" data-align="0,0.5" aria-label="Middle left">←</button><button type="button" data-align="0.5,0.5" aria-label="Center">•</button><button type="button" data-align="1,0.5" aria-label="Middle right">→</button>
+          <button type="button" data-align="0,1" aria-label="Bottom left">↙</button><button type="button" data-align="0.5,1" aria-label="Bottom center">↓</button><button type="button" data-align="1,1" aria-label="Bottom right">↘</button>
+        </div>
+        <p>Alignment uses Scale and AnchorPoint, so it adapts to the parent.</p>
+      </div>
+      <div class="viewport" id="viewport"><div class="stage-space" id="stageSpace"><div class="stage" id="stage" aria-label="Roblox UI canvas"></div></div></div>
+      <div class="statusbar"><span><span class="status-dot"></span><span id="canvasStatus">Ready</span></span><span><span id="canvasDimensions">960 × 600</span><span>·</span><span id="zoomStatus">80%</span></span></div>
+    </section>
+    <aside class="panel right-panel" aria-label="Properties panel">
+      <div class="panel-head"><span class="panel-title">Inspector</span><div class="panel-head-actions"><button class="icon-btn" id="resetProps" aria-label="Reset selected component properties" title="Reset properties"><i data-lucide="rotate-ccw"></i></button></div></div>
+      <div class="inspector-tabs"><button class="inspector-tab active" data-tab="properties">Properties</button><button class="inspector-tab" data-tab="appearance">Appearance</button></div>
+      <div class="panel-scroll" id="inspector" style="flex:1"></div>
+      <div class="statusbar"><span id="inspectorClass">ScreenGui</span><span id="propertyCount">0 properties</span></div>
+    </aside>
+  </main>
+</div>
+<div class="overlay" id="exportOverlay" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+  <section class="dialog">
+    <header class="dialog-head"><div><div class="dialog-title" id="exportTitle">Export UI</div><div class="dialog-subtitle">Generate Roblox Lua from the current layer tree.</div></div><button class="icon-btn" id="closeExport" aria-label="Close export dialog"><i data-lucide="x"></i></button></header>
+    <div class="dialog-body"><div class="mode-tabs" role="tablist"><button class="mode-tab active" data-export-mode="localscript" role="tab">LocalScript</button><button class="mode-tab" data-export-mode="commandbar" role="tab">Studio Command Bar</button></div><textarea class="code-output" id="luaOutput" spellcheck="false" readonly aria-label="Generated Lua code"></textarea><div class="export-tip" id="exportTip">Place this script in StarterPlayerScripts or StarterGui. It creates the ScreenGui under the local player's PlayerGui each time it runs.</div></div>
+    <footer class="dialog-foot"><span class="small muted" id="exportStats">Lua source</span><div class="pill-group"><button class="btn" id="copyLua"><i data-lucide="copy"></i>Copy code</button><button class="btn primary" id="downloadLua"><i data-lucide="download"></i>Download .lua</button></div></footer>
+  </section>
+</div>
+
+<div class="overlay" id="templatesOverlay" role="dialog" aria-modal="true" aria-labelledby="templatesTitle">
+  <section class="dialog templates-dialog">
+    <header class="dialog-head"><div><div class="dialog-title" id="templatesTitle">Templates & presets</div><div class="dialog-subtitle">Insert editable Roblox UI structures into the current project.</div></div><button class="icon-btn" id="closeTemplates" aria-label="Close templates"><i data-lucide="x"></i></button></header>
+    <div class="dialog-body">
+      <div class="template-grid">
+        <button class="template-card" data-template="button"><div class="template-preview"><span class="mini-button">Continue</span></div><strong>Animated button</strong><small>TextButton, corner, stroke and hover tween</small></button>
+        <button class="template-card" data-template="loading"><div class="template-preview"><div class="mini-track"><i></i></div></div><strong>Loading screen</strong><small>Progress track, fill animation and title</small></button>
+        <button class="template-card" data-template="hud"><div class="template-preview"><div class="mini-hud"><i>LEVEL 24</i><b>2,450 ◈</b><span>SHOP</span></div></div><strong>Game HUD</strong><small>Compact top bar with a hover-enabled action</small></button>
+        <button class="template-card" data-template="settings"><div class="template-preview"><div class="mini-panel"><b>Settings</b><span></span><span></span><span></span></div></div><strong>Settings panel</strong><small>Panel, title, controls and close button</small></button>
+        <button class="template-card" data-template="shop"><div class="template-preview"><div class="mini-shop"><i></i><b>Starter pack</b><span></span></div></div><strong>Shop card</strong><small>Item presentation, price and buy button</small></button>
+        <button class="template-card" data-template="inventory"><div class="template-preview"><div class="mini-inventory"><i></i><i></i><i></i><i></i></div></div><strong>Inventory grid</strong><small>Grid layout with six reusable item slots</small></button>
+      </div>
+      <p class="export-tip">Templates remain regular Roblox instances. Rename, reparent, recolor, and resize every piece.</p>
+    </div>
+    <footer class="dialog-foot"><span class="small muted">Template instances are added to the layer tree.</span><button class="btn" id="cancelTemplates">Cancel</button></footer>
+  </section>
+</div>
+<div class="context-menu" id="contextMenu" role="menu" aria-label="Layer actions"></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./assets/js/editor.js" defer></script>
+</body>
+</html>

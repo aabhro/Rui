@@ -1,0 +1,11 @@
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Node tooling
+node_modules/
+
+# Logs and local environment
+*.log
+.env
+.env.*
