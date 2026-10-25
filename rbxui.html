@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>rbxui · UI editor</title>
-<meta name="rbxui-revision" content="features-2026-10-25-04">
+<meta name="rbxui-revision" content="features-2026-10-25-05">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600;650;700&display=swap" rel="stylesheet">
@@ -543,8 +543,69 @@ function renderGuiNode(n){const selected=state.selectedId===n.id;const className
   return `<div class="${classNames.join(' ')}" data-node-id="${n.id}" data-class="${n.className}" data-hover="${n.meta?.hover?.enabled?'true':'false'}" style="${style}">${contentHTML(n)}${nodeChildrenHTML(n)}</div>`;
 }
 function measureScaledText(ctx,text,maxWidth,wrap){const paragraphs=String(text??'').replace(/\r\n?/g,'\n').split('\n');let lines=0,maxLineWidth=0;const addLine=line=>{lines++;maxLineWidth=Math.max(maxLineWidth,ctx.measureText(line).width);};for(const paragraph of paragraphs){if(!wrap){addLine(paragraph);continue;}if(!paragraph){addLine('');continue;}const words=paragraph.match(/\S+|\s+/g)||[''];let line='';for(const token of words){if(/^\s+$/.test(token)){if(line&&ctx.measureText(line+token).width<=maxWidth)line+=token;continue;}const candidate=line+token;if(ctx.measureText(candidate).width<=maxWidth){line=candidate;continue;}if(line){addLine(line.trimEnd());line='';}let piece='';for(const ch of token){if(piece&&ctx.measureText(piece+ch).width>maxWidth){addLine(piece);piece=ch;}else piece+=ch;}line=piece;}addLine(line.trimEnd());}return {lines:Math.max(1,lines),width:maxLineWidth};}
-function fitScaledText(root=$('#stage')){if(!root)return;const textNodes=root.querySelectorAll('.gui-node[data-node-id]');if(!textNodes.length)return;const canvas=fitScaledText.canvas||(fitScaledText.canvas=document.createElement('canvas'));const ctx=canvas.getContext('2d');if(!ctx)return;for(const el of textNodes){const n=getNode(el.dataset.nodeId);if(!n||!['TextLabel','TextButton','TextBox'].includes(n.className)||!n.props?.TextScaled)continue;const box=el.querySelector('.node-content'),span=box?.querySelector('span');if(!box||!span)continue;const p=n.props||{},rawText=n.className==='TextBox'?(p.Text||p.PlaceholderText||''):(p.Text||''),width=Math.max(1,box.clientWidth-8),height=Math.max(1,box.clientHeight-4),font=String(p.Font||'Gotham'),family=/Code|Mono/.test(font)?'monospace':'Geist, Arial, sans-serif',weight=/Bold|Black/.test(font)?650:400,lineHeight=Math.max(.5,Math.min(3,Number(p.LineHeight)||1.15)),constraint=decorFor(n.id,'UITextSizeConstraint'),minText=Math.max(1,Number(constraint?.props?.MinTextSize??1)),constraintMax=Number(constraint?.props?.MaxTextSize),naturalMax=Math.max(1,height*2),maxText=Math.max(minText,Math.min(1000,Number.isFinite(constraintMax)&&constraint?constraintMax:naturalMax)),wrapped=!!p.TextWrapped;span.style.display='block';span.style.width='100%';span.style.minWidth='0';span.style.maxWidth='100%';span.style.whiteSpace=wrapped?'pre-wrap':'pre';span.style.overflowWrap=wrapped?'anywhere':'normal';const fits=size=>{ctx.font=weight+' '+size+'px '+family;const measured=measureScaledText(ctx,rawText,width,wrapped);return measured.width<=width+.5&&measured.lines*size*lineHeight<=height+.5;};let low=minText,high=maxText;for(let i=0;i<18;i++){const mid=(low+high)/2;if(fits(mid))low=mid;else high=mid;}span.style.fontSize=Math.max(minText,Math.floor(low*100)/100)+'px';}}
-function renderStage(){const stage=$('#stage');stage.classList.toggle('show-grid',state.showGrid!==false);const visibleChildren=getNode('root')?.props.Enabled===false?[]:orderedRenderChildren('root');stage.innerHTML=visibleChildren.map(renderGuiNode).join('')+`<div class="selection-layer" id="selectionLayer"></div>`;fitScaledText(stage);refreshIcons(stage);applyStageZoom();updateSelectionOverlay();}if(document.fonts?.ready)document.fonts.ready.then(()=>fitScaledText($('#stage'))).catch(()=>{});
+function fitScaledTextNode(el){
+ if(!el||!el.isConnected)return;
+ const n=getNode(el.dataset.nodeId);
+ if(!n||!['TextLabel','TextButton','TextBox'].includes(n.className)||!n.props?.TextScaled)return;
+ const box=el.querySelector('.node-content'),span=box?.querySelector('span');
+ if(!box||!span)return;
+ const width=box.clientWidth,height=box.clientHeight;
+ if(width<1||height<1)return;
+ const p=n.props||{},font=String(p.Font||'Gotham'),family=/Code|Mono/.test(font)?'monospace':'Geist, Arial, sans-serif',weight=/Bold|Black/.test(font)?'650':'400',lineHeight=Math.max(.5,Math.min(3,Number(p.LineHeight)||1.15)),constraint=decorFor(n.id,'UITextSizeConstraint'),minSize=Math.max(1,Math.min(1000,Number(constraint?.props?.MinTextSize??1))),requestedMax=Number(constraint?.props?.MaxTextSize),maxSize=Math.max(minSize,Math.min(1000,constraint&&Number.isFinite(requestedMax)?requestedMax:Math.max(height*2,Number(p.TextSize||14)*2))),wrapped=!!p.TextWrapped;
+ span.style.display='block';
+ span.style.width='100%';
+ span.style.minWidth='0';
+ span.style.maxWidth='100%';
+ span.style.height='auto';
+ span.style.maxHeight='none';
+ span.style.margin='0';
+ span.style.boxSizing='border-box';
+ span.style.flex='0 1 auto';
+ span.style.fontFamily=family;
+ span.style.fontWeight=weight;
+ span.style.lineHeight=String(lineHeight);
+ span.style.whiteSpace=wrapped?'pre-wrap':'pre';
+ span.style.overflowWrap=wrapped?'anywhere':'normal';
+ span.style.wordBreak=wrapped?'break-word':'normal';
+ span.style.overflow='visible';
+ const fits=size=>{
+  span.style.fontSize=size+'px';
+  const rect=span.getBoundingClientRect();
+  const contentWidth=Math.max(rect.width,span.scrollWidth);
+  const contentHeight=Math.max(rect.height,span.scrollHeight);
+  return contentWidth<=width+.5&&contentHeight<=height+.5;
+ };
+ let low=minSize,high=maxSize;
+ if(fits(high)){low=high;}
+ else{
+  for(let i=0;i<20;i++){
+   const mid=(low+high)/2;
+   if(fits(mid))low=mid;else high=mid;
+  }
+ }
+ span.style.fontSize=Math.max(minSize,Math.floor(low*100)/100)+'px';
+}
+function fitScaledText(root=$('#stage')){
+ if(!root)return;
+ const nodes=[];
+ if(root.matches?.('.gui-node[data-node-id]'))nodes.push(root);
+ if(root.querySelectorAll)nodes.push(...root.querySelectorAll('.gui-node[data-node-id]'));
+ nodes.forEach(fitScaledTextNode);
+}
+let scaledTextResizeObserver=null;
+function observeScaledTextSizes(stage=$('#stage')){
+ if(!stage||typeof ResizeObserver==='undefined')return;
+ if(!scaledTextResizeObserver)scaledTextResizeObserver=new ResizeObserver(entries=>{
+  for(const entry of entries)fitScaledTextNode(entry.target);
+ });
+ scaledTextResizeObserver.disconnect();
+ stage.querySelectorAll('.gui-node[data-node-id]').forEach(el=>scaledTextResizeObserver.observe(el));
+}
+function scheduleScaledTextFit(){
+ if(scheduleScaledTextFit.frame)cancelAnimationFrame(scheduleScaledTextFit.frame);
+ scheduleScaledTextFit.frame=requestAnimationFrame(()=>{scheduleScaledTextFit.frame=0;fitScaledText($('#stage'));});
+}
+function renderStage(){const stage=$('#stage');stage.classList.toggle('show-grid',state.showGrid!==false);const visibleChildren=getNode('root')?.props.Enabled===false?[]:orderedRenderChildren('root');stage.innerHTML=visibleChildren.map(renderGuiNode).join('')+`<div class="selection-layer" id="selectionLayer"></div>`;refreshIcons(stage);applyStageZoom();fitScaledText(stage);observeScaledTextSizes(stage);updateSelectionOverlay();}if(document.fonts?.ready)document.fonts.ready.then(scheduleScaledTextFit).catch(()=>{});
 function applyStageZoom(){const stage=$('#stage'),space=$('#stageSpace');stage.style.width=CANVAS.w+'px';stage.style.height=CANVAS.h+'px';stage.style.transform=`scale(${state.zoom})`;space.style.width=(CANVAS.w*state.zoom)+'px';space.style.height=(CANVAS.h*state.zoom)+'px';$('#zoomLabel').textContent=Math.round(state.zoom*100)+'%';$('#zoomStatus').textContent=Math.round(state.zoom*100)+'%';const dims=CANVAS.w+' × '+CANVAS.h;const chip=$('#canvasSizeBtn');if(chip)chip.textContent=dims;const status=$('#canvasDimensions');if(status)status.textContent=dims;const wi=$('#canvasWidthInput'),hi=$('#canvasHeightInput');if(wi)wi.value=CANVAS.w;if(hi)hi.value=CANVAS.h;}
 function visualSelectionNode(){let n=current();while(n&&!isGuiObject(n)&&!isScreen(n)){n=parentOf(n);}return n&&isGuiObject(n)?n:null;}
 function updateSelectionOverlay(){const layer=$('#selectionLayer');if(!layer)return;if(state.preview){layer.innerHTML='';return;}const n=visualSelectionNode();if(!n){layer.innerHTML='';return;}const dom=$(`#stage [data-node-id="${CSS.escape(n.id)}"]`);const stage=$('#stage');if(!dom||!stage){layer.innerHTML='';return;}const rect=dom.getBoundingClientRect(),sr=stage.getBoundingClientRect(),z=state.zoom;const x=(rect.left-sr.left)/z,y=(rect.top-sr.top)/z,w=rect.width/z,h=rect.height/z;layer.innerHTML=`<div class="selection-outline" style="left:${x}px;top:${y}px;width:${Math.max(0,w)}px;height:${Math.max(0,h)}px">${['nw','ne','sw','se'].map(pos=>`<span class="handle ${pos}" data-resize="${pos}" aria-label="Resize ${pos}"></span>`).join('')}<span class="outline-tag">${escapeHTML(current()?.name||n.name)} · ${Math.round(w)} × ${Math.round(h)}</span></div>`;}
@@ -628,7 +689,7 @@ function pointerMove(e){
   if(state.snapToGrid){if(d.includes('w'))n.props.Position.xo=snapOffset(n,'x',n.props.Position.xo);if(d.includes('n'))n.props.Position.yo=snapOffset(n,'y',n.props.Position.yo);}
  }
  const dom=$(`#stage [data-node-id="${CSS.escape(n.id)}"]`);
- if(dom){Object.assign(dom.style,styleGeometry(n));dom.style.backgroundColor=rgba(n.props.BackgroundColor3||'#fff',1-Number(n.props.BackgroundTransparency||0));}
+ if(dom){Object.assign(dom.style,styleGeometry(n));dom.style.backgroundColor=rgba(n.props.BackgroundColor3||'#fff',1-Number(n.props.BackgroundTransparency||0));if(dragOp.type==='resize')fitScaledTextNode(dom);}
  updateSelectionOverlay();$('#canvasStatus').textContent=dragOp.type==='move'?'Moving '+n.name:'Resizing '+n.name;
 }
 function pointerUp(){if(!dragOp)return;dragOp=null;document.body.style.cursor='';renderTree();renderInspector();renderStage();updateSelectedSummary();$('#canvasStatus').textContent='Ready';save();}
