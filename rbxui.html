@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>rbxui · UI editor</title>
-<meta name="rbxui-revision" content="features-2026-10-25-02">
+<meta name="rbxui-revision" content="features-2026-10-25-03">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600;650;700&display=swap" rel="stylesheet">
@@ -374,7 +374,7 @@ const colorPickerState=new Map();
 try{const saved=localStorage.getItem(STORAGE_KEY);if(saved){const parsed=JSON.parse(saved);if(Array.isArray(parsed.nodes)&&parsed.nodes.some(n=>n.className==='ScreenGui')){state.projectName=parsed.projectName||'Untitled UI';state.nodes=parsed.nodes;state.selectedId=getSavedSelection(parsed.selectedId,state.nodes);state.zoom=Number.isFinite(parsed.zoom)?Math.max(.25,Math.min(1.5,parsed.zoom)):.8;state.showGrid=parsed.showGrid!==false;state.snapToGrid=parsed.snapToGrid===true;if(Number.isFinite(parsed.canvasWidth))CANVAS.w=Math.max(1,Math.min(16384,Math.round(parsed.canvasWidth)));if(Number.isFinite(parsed.canvasHeight))CANVAS.h=Math.max(1,Math.min(16384,Math.round(parsed.canvasHeight)));}}}catch(e){}
 function getSavedSelection(id,nodes){return nodes.some(n=>n.id===id)?id:nodes[0]?.id||'root';}
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({projectName:state.projectName,nodes:state.nodes,selectedId:state.selectedId,zoom:state.zoom,canvasWidth:CANVAS.w,canvasHeight:CANVAS.h,showGrid:state.showGrid,snapToGrid:state.snapToGrid}));}catch(e){}}
-function refreshIcons(root=document){if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons({attrs:{'stroke-width':1.7}});}catch(e){}}}
+const ICON_COMPAT=Object.freeze({'between-horizontal':'move-horizontal'});function refreshIcons(root=document){const scope=root&&typeof root.querySelectorAll==='function'?root:document;scope.querySelectorAll('[data-lucide]').forEach(el=>{const name=el.getAttribute('data-lucide');if(ICON_COMPAT[name])el.setAttribute('data-lucide',ICON_COMPAT[name]);});if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons({attrs:{'stroke-width':1.7},root:scope});}catch(e){}}}
 const lucideScript=document.querySelector('script[src*="lucide"]');if(lucideScript)lucideScript.addEventListener('load',()=>refreshIcons());
 function toast(message){const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1900);}
 function historySnapshot(){return {nodes:clone(state.nodes),canvas:{w:CANVAS.w,h:CANVAS.h}};}
@@ -821,7 +821,7 @@ $('#inspector').addEventListener('input',function(e){
  if(input.type==='number'||input.type==='checkbox'||input.tagName==='SELECT')return;
  updateProp(input.dataset.prop,input.value,input.dataset.sub);
 });
-$('#inspector').addEventListener('click',e=>{const tab=e.target.closest('[data-tab]');if(tab){state.activeTab=tab.dataset.tab;$$('.inspector-tab').forEach(t=>t.classList.toggle('active',t===tab));renderInspector();return;}const mod=e.target.closest('[data-add-modifier]');if(mod)addModifier(mod.dataset.addModifier);});
+$('.right-panel').addEventListener('click',e=>{const tab=e.target.closest('[data-tab]');if(tab){state.activeTab=tab.dataset.tab;$('.inspector-tab').forEach(t=>t.classList.toggle('active',t===tab));renderInspector();return;}const mod=e.target.closest('[data-add-modifier]');if(mod)addModifier(mod.dataset.addModifier);});
 
 $('#resetProps').addEventListener('click',()=>{const n=current();if(!n||n.className==='ScreenGui'){toast('Select a component first');return;}checkpoint();const fresh=freshProps(n.className);Object.keys(n.props).forEach(k=>delete n.props[k]);Object.assign(n.props,fresh);renderAll();save();toast('Properties reset');});
 $('#stage').addEventListener('pointerdown',nodePointerDown);$('#stage').addEventListener('pointerdown',resizePointerDown);document.addEventListener('pointermove',pointerMove);document.addEventListener('pointerup',pointerUp);$('#stage').addEventListener('click',e=>{if(e.target===$('#stage')&&!state.preview)selectNode('root');});
