@@ -472,18 +472,33 @@ function renderInspector(){const n=current(),root=$('#inspector');if(!n){root.in
   root.innerHTML=html;$('#inspectorClass').textContent=n.className;$('#propertyCount').textContent=shown+' properties';refreshIcons(root);
 }
 function updateSelectedSummary(){const n=current();$('#selectionPath').textContent=n?n.name+' · '+n.className:'';}
-function canvasDimension(node,axis){if(!node||isScreen(node))return axis==='x'?CANVAS.w:CANVAS.h;const parent=parentOf(node);const parentSize=canvasDimension(parent,axis);const key=axis==='x'?'xs':'ys',offset=axis==='x'?'xo':'yo';const s=node.props?.Size||{};return Math.max(1,parentSize*Number(s[key]||0)+Number(s[offset]||0));}
-function snapOffset(node,axis,offset){const parent=parentOf(node),parentDim=canvasDimension(parent,axis),scale=Number((node.props.Position||{})[axis==='x'?'xs':'ys']||0),scaled=parentDim*scale;return round(Math.round((scaled+offset)/SNAP_GRID)*SNAP_GRID-scaled);}
-function snapSizeOffset(node,axis,offset){const parent=parentOf(node),parentDim=canvasDimension(parent,axis),size=node.props.Size||{},scale=Number(size[axis==='x'?'xs':'ys']||0),snapped=Math.max(1,Math.round((parentDim*scale+offset)/SNAP_GRID)*SNAP_GRID);return round(snapped-parentDim*scale);}
+function canvasDimension(node,axis){
+ if(!node||isScreen(node))return axis==='x'?CANVAS.w:CANVAS.h;
+ const parent=parentOf(node),parentSize=canvasDimension(parent,axis);
+ const key=axis==='x'?'xs':'ys',offset=axis==='x'?'xo':'yo',size=node.props?.Size||{};
+ let dimension=Math.max(1,parentSize*Number(size[key]||0)+Number(size[offset]||0));
+ const constraint=childrenOf(node.id).find(x=>x.className==='UISizeConstraint'),axisKey=axis==='x'?'x':'y';
+ if(constraint){const min=Number(constraint.props?.MinSize?.[axisKey]||0),max=Number(constraint.props?.MaxSize?.[axisKey]??10000);dimension=Math.max(min,Math.min(max,dimension));}
+ return dimension;
+}
+function snapOffset(node,axis,offset){
+ const parent=parentOf(node),parentDim=canvasDimension(parent,axis),position=node.props.Position||{},size=node.props.Size||{},anchor=node.props.AnchorPoint||{x:0,y:0};
+ const posScale=Number(position[axis==='x'?'xs':'ys']||0),sizeScale=Number(size[axis==='x'?'xs':'ys']||0),sizeOffset=Number(size[axis==='x'?'xo':'yo']||0),a=Number(anchor[axis]||0);
+ const absolutePosition=parentDim*posScale+offset,actualSize=Math.max(1,parentDim*sizeScale+sizeOffset);
+ const snappedLeft=Math.round((absolutePosition-a*actualSize)/SNAP_GRID)*SNAP_GRID;
+ return round(snappedLeft+a*actualSize-parentDim*posScale);
+}
+function resizeSizeOffset(node,axis,offset){
+ const parent=parentOf(node),parentDim=canvasDimension(parent,axis),size=node.props.Size||{},scale=Number(size[axis==='x'?'xs':'ys']||0);
+ let dimension=Math.max(1,parentDim*scale+offset);
+ if(state.snapToGrid)dimension=Math.max(1,Math.round(dimension/SNAP_GRID)*SNAP_GRID);
+ return round(dimension-parentDim*scale);
+}
 function syncCanvasTools(){const grid=$('#gridToggle'),snap=$('#snapToggle');if(grid){grid.classList.toggle('is-on',state.showGrid!==false);grid.setAttribute('aria-pressed',String(state.showGrid!==false));}if(snap){snap.classList.toggle('is-on',state.snapToGrid===true);snap.setAttribute('aria-pressed',String(state.snapToGrid===true));}$('#stage')?.classList.toggle('show-grid',state.showGrid!==false);}
 function styleGeometry(n){
  const p=n.props||{},pos=p.Position||{xs:0,xo:0,ys:0,yo:0},size=p.Size||{xs:0,xo:100,ys:0,yo:40},a=p.AnchorPoint||{x:0,y:0},ax=Number(a.x||0),ay=Number(a.y||0),rotation=Number(p.Rotation??0);
- const style={left:`calc(${(Number(pos.xs||0)-Number(size.xs||0)*ax)*100}% + ${Number(pos.xo||0)-Number(size.xo||0)*ax}px)`,top:`calc(${(Number(pos.ys||0)-Number(size.ys||0)*ay)*100}% + ${Number(pos.yo||0)-Number(size.yo||0)*ay}px)`,width:`calc(${Number(size.xs||0)*100}% + ${Number(size.xo||0)}px)`,height:`calc(${Number(size.ys||0)*100}% + ${Number(size.yo||0)}px)`,display:p.Visible===false?'none':'block'};
- if(rotation)style.transform=`rotate(${rotation}deg)`;
- style.zIndex=Number(p.ZIndex??1);
- return style;
+ return {left:`calc(${Number(pos.xs||0)*100}% + ${Number(pos.xo||0)}px)`,top:`calc(${Number(pos.ys||0)*100}% + ${Number(pos.yo||0)}px)`,width:`calc(${Number(size.xs||0)*100}% + ${Number(size.xo||0)}px)`,height:`calc(${Number(size.ys||0)*100}% + ${Number(size.yo||0)}px)`,transform:`translate(${-ax*100}%, ${-ay*100}%)${rotation?` rotate(${rotation}deg)`:''}`,zIndex:Number(p.ZIndex??1),display:p.Visible===false?'none':'block'};
 }
-function normalizeGlobalZIndices(parentId='root',parentZ=-1000){for(const child of childrenOf(parentId)){if(!isGuiObject(child))continue;const z=Number(child.props.ZIndex??1);if(z<parentZ)child.props.ZIndex=parentZ;normalizeGlobalZIndices(child.id,Number(child.props.ZIndex??parentZ));}}
 function decorFor(parentId,className){return childrenOf(parentId).find(n=>n.className===className&&n.props.Enabled!==false);}
 function getClassNode(node,className){return childrenOf(node.id).find(n=>n.className===className);}
 function getCornerRadius(parent){const c=decorFor(parent.id,'UICorner');if(!c)return '0px';const radius=v=>{v=v||c.props.CornerRadius||{scale:0,offset:0};return Number(v.scale||0)===0?`${Number(v.offset||0)}px`:`calc(${Number(v.scale||0)*100}% + ${Number(v.offset||0)}px)`;};const keys=['TopLeftRadius','TopRightRadius','BottomRightRadius','BottomLeftRadius'];if(keys.some(k=>c.props[k]&&(c.props[k].offset!==8||c.props[k].scale!==0)))return keys.map(k=>radius(c.props[k])).join(' ');return radius(c.props.CornerRadius);}
@@ -597,8 +612,25 @@ function downloadFile(filename,contents,type){const blob=new Blob([contents],{ty
 // Canvas interactions: offset properties remain editable as Roblox UDim2 values.
 function nodePointerDown(e){if(state.preview||e.button!==0||e.target.closest('[data-resize]'))return;const el=e.target.closest('.gui-node');if(!el)return;const id=el.dataset.nodeId;const n=getNode(id);if(!n||!isGuiObject(n))return;if(e.target.closest('input,textarea,select,button'))return;e.preventDefault();selectNode(id);checkpoint();dragOp={type:'move',id,startX:e.clientX,startY:e.clientY,startPos:clone(n.props.Position||{xs:0,xo:0,ys:0,yo:0}),zoom:state.zoom};document.body.style.cursor='move';}
 function resizePointerDown(e){const handle=e.target.closest('[data-resize]');if(!handle||state.preview)return;e.preventDefault();e.stopPropagation();const n=visualSelectionNode();if(!n)return;checkpoint();dragOp={type:'resize',id:n.id,dir:handle.dataset.resize,startX:e.clientX,startY:e.clientY,startPos:clone(n.props.Position||{xs:0,xo:0,ys:0,yo:0}),startSize:clone(n.props.Size||{xs:0,xo:200,ys:0,yo:100}),zoom:state.zoom};document.body.style.cursor=getComputedStyle(handle).cursor;}
-function pointerMove(e){if(!dragOp)return;const n=getNode(dragOp.id);if(!n)return;const dx=(e.clientX-dragOp.startX)/dragOp.zoom,dy=(e.clientY-dragOp.startY)/dragOp.zoom;if(dragOp.type==='move'){n.props.Position=clone(dragOp.startPos);n.props.Position.xo=round(dragOp.startPos.xo+dx);n.props.Position.yo=round(dragOp.startPos.yo+dy);if(state.snapToGrid){n.props.Position.xo=snapOffset(n,'x',n.props.Position.xo);n.props.Position.yo=snapOffset(n,'y',n.props.Position.yo);}}else{const d=dragOp.dir;n.props.Position=clone(dragOp.startPos);n.props.Size=clone(dragOp.startSize);if(d.includes('e'))n.props.Size.xo=Math.max(1,round(dragOp.startSize.xo+dx));if(d.includes('s'))n.props.Size.yo=Math.max(1,round(dragOp.startSize.yo+dy));if(d.includes('w')){n.props.Size.xo=Math.max(1,round(dragOp.startSize.xo-dx));n.props.Position.xo=round(dragOp.startPos.xo+dx);}if(d.includes('n')){n.props.Size.yo=Math.max(1,round(dragOp.startSize.yo-dy));n.props.Position.yo=round(dragOp.startPos.yo+dy);}if(state.snapToGrid){if(d.includes('e')||d.includes('w'))n.props.Size.xo=snapSizeOffset(n,'x',n.props.Size.xo);if(d.includes('s')||d.includes('n'))n.props.Size.yo=snapSizeOffset(n,'y',n.props.Size.yo);if(d.includes('w'))n.props.Position.xo=snapOffset(n,'x',n.props.Position.xo);if(d.includes('n'))n.props.Position.yo=snapOffset(n,'y',n.props.Position.yo);}}
-  const dom=$(`#stage [data-node-id="${CSS.escape(n.id)}"]`);if(dom){Object.assign(dom.style,styleGeometry(n));dom.style.backgroundColor=rgba(n.props.BackgroundColor3||'#fff',1-Number(n.props.BackgroundTransparency||0));}updateSelectionOverlay();$('#canvasStatus').textContent=dragOp.type==='move'?'Moving '+n.name:'Resizing '+n.name;}
+function pointerMove(e){
+ if(!dragOp)return;const n=getNode(dragOp.id);if(!n)return;
+ const dx=(e.clientX-dragOp.startX)/dragOp.zoom,dy=(e.clientY-dragOp.startY)/dragOp.zoom;
+ if(dragOp.type==='move'){
+  n.props.Position=clone(dragOp.startPos);n.props.Position.xo=round(dragOp.startPos.xo+dx);n.props.Position.yo=round(dragOp.startPos.yo+dy);
+  if(state.snapToGrid){n.props.Position.xo=snapOffset(n,'x',n.props.Position.xo);n.props.Position.yo=snapOffset(n,'y',n.props.Position.yo);}
+ }else{
+  const d=dragOp.dir,anchor=n.props.AnchorPoint||{x:0,y:0},ax=Number(anchor.x||0),ay=Number(anchor.y||0);
+  n.props.Position=clone(dragOp.startPos);n.props.Size=clone(dragOp.startSize);
+  if(d.includes('e')){n.props.Size.xo=resizeSizeOffset(n,'x',dragOp.startSize.xo+dx);n.props.Position.xo=round(dragOp.startPos.xo+ax*dx);}
+  if(d.includes('s')){n.props.Size.yo=resizeSizeOffset(n,'y',dragOp.startSize.yo+dy);n.props.Position.yo=round(dragOp.startPos.yo+ay*dy);}
+  if(d.includes('w')){n.props.Size.xo=resizeSizeOffset(n,'x',dragOp.startSize.xo-dx);n.props.Position.xo=round(dragOp.startPos.xo+dx*(1-ax));}
+  if(d.includes('n')){n.props.Size.yo=resizeSizeOffset(n,'y',dragOp.startSize.yo-dy);n.props.Position.yo=round(dragOp.startPos.yo+dy*(1-ay));}
+  if(state.snapToGrid){if(d.includes('w'))n.props.Position.xo=snapOffset(n,'x',n.props.Position.xo);if(d.includes('n'))n.props.Position.yo=snapOffset(n,'y',n.props.Position.yo);}
+ }
+ const dom=$(`#stage [data-node-id="${CSS.escape(n.id)}"]`);
+ if(dom){Object.assign(dom.style,styleGeometry(n));dom.style.backgroundColor=rgba(n.props.BackgroundColor3||'#fff',1-Number(n.props.BackgroundTransparency||0));}
+ updateSelectionOverlay();$('#canvasStatus').textContent=dragOp.type==='move'?'Moving '+n.name:'Resizing '+n.name;
+}
 function pointerUp(){if(!dragOp)return;dragOp=null;document.body.style.cursor='';renderTree();renderInspector();renderStage();updateSelectedSummary();$('#canvasStatus').textContent='Ready';save();}
 
 let contextTargetId=null;
