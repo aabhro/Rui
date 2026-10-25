@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>rbxui · UI editor</title>
-<meta name="rbxui-revision" content="audit-2026-10-25-02">
+<meta name="rbxui-revision" content="features-2026-10-25-01">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600;650;700&display=swap" rel="stylesheet">
@@ -633,7 +633,7 @@ function insertTemplate(kind){
  const pos=(x,y)=>({xs:x,xo:0,ys:y,yo:0});
  const size=(w,h)=>({xs:w,xo:0,ys:h,yo:0});
  function panel(name,maxW,h,minW,position=pos(.5,.5)){
-  const p=addTemplateNode(parentId,'Frame',name,{Position:position,Size:{xs:.92,xo:0,ys:0,yo:h},AnchorPoint:{x:.5,y:position.ys===.09?.5:.5},BackgroundColor3:dark,BorderSizePixel:0,ZIndex:1});
+  const p=addTemplateNode(parentId,'Frame',name,{Position:position,Size:{xs:.92,xo:0,ys:0,yo:h},AnchorPoint:{x:.5,y:.5},BackgroundColor3:dark,BorderSizePixel:0,ZIndex:1});
   addTemplateNode(p.id,'UISizeConstraint',name+'ResponsiveSize',{MinSize:{x:minW,y:h},MaxSize:{x:maxW,y:h}});
   addTCorner(p.id,12);addTStroke(p.id,line);addTShadow(p.id);return p;
  }
